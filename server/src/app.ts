@@ -20,7 +20,7 @@ export function createApp(): Application {
   app.use(express.json());
 
   // Health-check: простой эндпоинт для проверки, что сервер жив
-  app.get('/health', (_req: Request, res: Response) => {
+  app.get('/api/health', (_req: Request, res: Response) => {
     res.json({ status: 'ok' });
   });
 
