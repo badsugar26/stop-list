@@ -11,7 +11,7 @@
     "build:server": "npm run build --prefix server",
     "build:client": "npm run build --prefix client",
     "start": "npm start --prefix server",
-    "install:all": "npm install && npm install --prefix server && npm install --prefix client"
+    "install:all": "npm install && npm install --prefix server --include=dev && npm install --prefix client --include=dev"
   },
   "devDependencies": {
     "concurrently": "^9.1.0"
