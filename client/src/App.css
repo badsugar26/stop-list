@@ -156,6 +156,17 @@
   flex-wrap: wrap;
 }
 
+@keyframes badge-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .dish-list__badge {
   font-size: 11px;
   font-weight: 600;
@@ -165,6 +176,7 @@
   border-radius: 10px;
   background: var(--color-error-bg);
   color: var(--color-accent);
+  animation: badge-fade-in 200ms ease;
 }
 
 .dish-list__meta {
@@ -308,12 +320,34 @@
   gap: 12px;
 }
 
+/* Анимация появления карточки */
+@keyframes stop-list-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .stop-list__item {
   padding: 14px 16px;
   background: var(--color-card-muted);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
+  animation: stop-list-fade-in 200ms ease;
   transition: opacity 200ms ease, transform 200ms ease;
+}
+
+/* Класс «удаляется» — активируется перед удалением карточки.
+   Transition плавно уводит её в opacity: 0, а через 200 мс
+   React удалит элемент из DOM. */
+.stop-list__item--removing {
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
 }
 
 .stop-list__header {
