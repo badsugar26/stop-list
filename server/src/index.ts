@@ -1,7 +1,15 @@
 import 'dotenv/config';
 import { createApp } from './app';
 
-const PORT = Number(process.env.PORT ?? 3000);
+function resolvePort(): number {
+  const raw = process.env.PORT;
+  if (!raw) return 3000;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed <= 0) return 3000;
+  return parsed;
+}
+
+const PORT = resolvePort();
 
 const app = createApp();
 
