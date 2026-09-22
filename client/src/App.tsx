@@ -1,8 +1,65 @@
+import { useEffect, useRef, useState } from 'react';
 import { useStopList } from './hooks/useStopList';
+import { DishList } from './components/DishList';
+import { StopDishForm } from './components/StopDishForm';
+import { ActiveStopList } from './components/ActiveStopList';
 import './App.css';
 
 function App() {
-  const { dishes, active, loading, error, reload } = useStopList();
+  const {
+  dishes,
+  active,
+  loading,
+  error,
+  reload,
+  createStop,
+  returnFromStop,
+  now,
+  lastLoadedAt,
+} = useStopList();
+
+  const [preselectedDishId, setPreselectedDishId] = useState<string | null>(
+    null
+  );
+
+  // Ref на секцию с формой — чтобы плавно скроллить к ней.
+  const formSectionRef = useRef<HTMLElement | null>(null);
+
+  /**
+   * Автообновление active раз в 60 секунд, БЕЗ глобального loading,
+   * чтобы не сбрасывать скролл. Требование ТЗ.
+   */
+  useEffect(() => {
+    const interval = setInterval(() => {
+      void reload({ silent: true });
+    }, 60_000);
+    return () => clearInterval(interval);
+  }, [reload]);
+
+  /**
+   * Клик «В стоп» в списке блюд: сохраняем выбор и скроллим к форме.
+   * Плавный скролл — UX: пользователь видит, что произошло.
+   */
+  function handleSelectDish(dishId: string) {
+    setPreselectedDishId(dishId);
+    // Прокручиваем после рендера, чтобы ref указывал на актуальную секцию.
+    requestAnimationFrame(() => {
+      formSectionRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
+  }
+
+  async function handleCreateStop(input: {
+    dishId: string;
+    reason: string;
+    durationMinutes: number;
+  }) {
+    await createStop(input);
+    setPreselectedDishId(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   return (
     <div className="app">
@@ -13,14 +70,12 @@ function App() {
         </p>
       </header>
 
-      {/* Состояние загрузки */}
       {loading && (
         <div className="state" role="status" aria-live="polite">
           Загрузка…
         </div>
       )}
 
-      {/* Состояние ошибки с кнопкой «Повторить» */}
       {!loading && error && (
         <div className="state state--error" role="alert">
           <div>{error}</div>
@@ -34,29 +89,39 @@ function App() {
         </div>
       )}
 
-      {/* Основной контент — только когда загрузились без ошибки */}
       {!loading && !error && (
         <div className="app__grid">
           <section className="section">
             <h2 className="section__title">Блюда</h2>
-            {dishes.length === 0 ? (
-              <p className="section__empty">Справочник пуст</p>
-            ) : (
-              <p className="section__empty">
-                Заглушка: здесь будет список {dishes.length} блюд
-              </p>
-            )}
+            <DishList
+              dishes={dishes}
+              active={active}
+              onSelectDish={handleSelectDish}
+            />
           </section>
 
           <section className="section">
             <h2 className="section__title">Активный стоп-лист</h2>
-            {active.length === 0 ? (
-              <p className="section__empty">Все блюда в продаже</p>
-            ) : (
-              <p className="section__empty">
-                Заглушка: здесь будет {active.length} записей
-              </p>
-            )}
+            <ActiveStopList
+              entries={active}
+              now={now}
+              lastLoadedAt={lastLoadedAt}
+              onReturn={returnFromStop}
+            />
+          </section>
+
+          <section
+            className="section app__form-section"
+            ref={formSectionRef}
+            aria-label="Форма постановки в стоп"
+          >
+            <h2 className="section__title">Поставить в стоп</h2>
+            <StopDishForm
+              key={preselectedDishId ?? 'default'}
+              dishes={dishes}
+              preselectedDishId={preselectedDishId}
+              onSubmit={handleCreateStop}
+            />
           </section>
         </div>
       )}

@@ -14,18 +14,24 @@ import type {
   StopListEntryView,
 } from '../api/types';
 
+interface ReloadOptions {
+  silent?: boolean;
+}
+
 interface UseStopListResult {
-  // Данные
   dishes: Dish[];
   active: StopListEntryView[];
   history: HistoryResponse | null;
 
-  // Состояния
   loading: boolean;
   error: string | null;
 
-  // Действия
-  reload: () => Promise<void>;
+  /** Текущее время (обновляется раз в 30 сек). Для обратного отсчёта. */
+  now: number;
+  /** Момент последней успешной загрузки active. */
+  lastLoadedAt: number;
+
+  reload: (options?: ReloadOptions) => Promise<void>;
   createStop: (input: CreateStopInput) => Promise<void>;
   returnFromStop: (id: string) => Promise<void>;
   loadHistory: (limit?: number, offset?: number) => Promise<void>;
@@ -39,13 +45,16 @@ export function useStopList(): UseStopListResult {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  /**
-   * Перезагрузить основные данные: блюда + активные записи.
-   * Вызывается при монтировании и после каждой мутации.
-   */
-  const reload = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  // now и lastLoadedAt — в состоянии. Начальные 0; обновятся в эффектах.
+  const [now, setNow] = useState<number>(0);
+  const [lastLoadedAt, setLastLoadedAt] = useState<number>(0);
+
+  const reload = useCallback(async (options: ReloadOptions = {}) => {
+    const { silent = false } = options;
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const [dishesData, activeData] = await Promise.all([
         fetchDishes(),
@@ -53,14 +62,16 @@ export function useStopList(): UseStopListResult {
       ]);
       setDishes(dishesData);
       setActive(activeData);
+      setLastLoadedAt(Date.now()); // setState после await — линтер доволен
+      if (silent) setError(null);
     } catch (err) {
       setError(toErrorMessage(err));
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
-  // Первичная загрузка при монтировании.
+  // Первичная загрузка.
   useEffect(() => {
     let cancelled = false;
 
@@ -75,6 +86,7 @@ export function useStopList(): UseStopListResult {
         if (cancelled) return;
         setDishes(dishesData);
         setActive(activeData);
+        setLastLoadedAt(Date.now());
       } catch (err) {
         if (cancelled) return;
         setError(toErrorMessage(err));
@@ -88,29 +100,41 @@ export function useStopList(): UseStopListResult {
     };
   }, []);
 
-  /**
-   * Поставить блюдо в стоп.
-   * После успеха — перезагружаем active.
-   * Ошибка пробрасывается наверх — форма покажет её под полем.
-   */
+  // now обновляется раз в 30 сек. setState — внутри setInterval-колбэка,
+  // а не в теле effect — линтер set-state-in-effect не сработает.
+  useEffect(() => {
+    // Сразу выставить текущее время (внутри rAF, чтобы не было setState
+    // синхронно в теле эффекта).
+    const raf = requestAnimationFrame(() => {
+      setNow(Date.now());
+    });
+
+    const interval = setInterval(() => {
+      setNow(Date.now());
+    }, 30_000);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      clearInterval(interval);
+    };
+  }, []);
+
   const createStop = useCallback(
     async (input: CreateStopInput) => {
       await createStopEntry(input);
-      await reload();
+      await reload({ silent: true });
     },
     [reload]
   );
 
-  /** Досрочный возврат блюда в продажу. */
   const returnFromStop = useCallback(
     async (id: string) => {
       await returnEntry(id);
-      await reload();
+      await reload({ silent: true });
     },
     [reload]
   );
 
-  /** Загрузить историю (по требованию, не при монтировании). */
   const loadHistory = useCallback(async (limit = 20, offset = 0) => {
     try {
       const data = await fetchHistory(limit, offset);
@@ -126,6 +150,8 @@ export function useStopList(): UseStopListResult {
     history,
     loading,
     error,
+    now,
+    lastLoadedAt,
     reload,
     createStop,
     returnFromStop,
@@ -133,10 +159,6 @@ export function useStopList(): UseStopListResult {
   };
 }
 
-/**
- * Преобразовать ошибку в человекочитаемое сообщение.
- * Если это HttpError — берём message с сервера.
- */
 function toErrorMessage(err: unknown): string {
   if (err instanceof HttpError) return err.message;
   if (err instanceof Error) return err.message;

@@ -1,30 +1,38 @@
+/* ============================================================
+   Корневая раскладка
+   ============================================================ */
+
 .app {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 24px 16px 64px;
+  padding: 32px 20px 80px;
 }
 
 .app__header {
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
 
 .app__title {
-  margin: 0 0 4px;
+  margin: 0 0 6px;
   font-size: 28px;
   font-weight: 700;
   color: var(--color-text);
+  line-height: 1.2;
 }
 
 .app__subtitle {
   margin: 0;
   font-size: 15px;
   color: var(--color-text-muted);
+  line-height: 1.4;
 }
 
-/* Состояния экрана: загрузка, ошибка, контент */
+/* ============================================================
+   Состояния экрана (загрузка / ошибка)
+   ============================================================ */
 
 .state {
-  padding: 40px 24px;
+  padding: 48px 24px;
   text-align: center;
   color: var(--color-text-muted);
   background: var(--color-card);
@@ -39,8 +47,8 @@
 }
 
 .state__retry {
-  margin-top: 12px;
-  padding: 8px 16px;
+  margin-top: 16px;
+  padding: 10px 20px;
   background: var(--color-accent);
   color: #fff;
   border: none;
@@ -52,54 +60,331 @@
   background: var(--color-accent-hover);
 }
 
-/* Сетка: одна колонка на мобильных, две на широких экранах */
+/* ============================================================
+   Сетка
+   ============================================================ */
 
 .app__grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 20px;
+  gap: 24px;
 }
 
 @media (min-width: 768px) {
   .app__grid {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-    gap: 24px;
+    gap: 28px;
+  }
+
+  .app__form-section {
+    grid-column: 1 / -1;
   }
 }
 
-/* Секции */
+/* ============================================================
+   Секции
+   ============================================================ */
 
 .section {
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  padding: 20px;
-  box-shadow: var(--shadow);
+  padding: 24px;
+  box-shadow: 0 2px 6px rgba(23, 21, 18, 0.05);
 }
 
 .section__title {
-  margin: 0 0 16px;
+  margin: 0 0 20px;
   font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.section__empty {
+  padding: 24px 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+/* ============================================================
+   Список блюд
+   ============================================================ */
+
+.dish-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dish-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.dish-list__item:first-child {
+  padding-top: 0;
+}
+
+.dish-list__item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.dish-list__item--stopped {
+  opacity: 0.65;
+}
+
+.dish-list__info {
+  min-width: 0;
+  flex: 1;
+}
+
+.dish-list__name {
+  font-weight: 500;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dish-list__badge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--color-error-bg);
+  color: var(--color-accent);
+}
+
+.dish-list__meta {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.dish-list__action {
+  padding: 6px 12px;
+  font-size: 13px;
+  background: transparent;
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius);
+  transition: background-color 150ms ease, color 150ms ease;
+  white-space: nowrap;
+}
+
+.dish-list__action:hover:not(:disabled) {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.dish-list__action:disabled {
+  cursor: not-allowed;
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+  background: var(--color-card-muted);
+}
+
+/* ============================================================
+   Форма
+   ============================================================ */
+
+.stop-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-field__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.form-field__input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-card);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.form-field__input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(198, 70, 47, 0.12);
+}
+
+.form-field__input--error {
+  border-color: var(--color-error);
+}
+
+.form-field__input--error:focus {
+  box-shadow: 0 0 0 3px rgba(198, 70, 47, 0.18);
+}
+
+.form-field__textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-field__error {
+  font-size: 12px;
+  color: var(--color-error);
+  line-height: 1.4;
+}
+
+/* ============================================================
+   Кнопки
+   ============================================================ */
+
+.button {
+  padding: 10px 18px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  font-weight: 500;
+  font-size: 14px;
+  transition: background-color 150ms ease, color 150ms ease,
+    border-color 150ms ease;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.button--primary {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.button--primary:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.button--secondary {
+  background: transparent;
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.button--secondary:hover:not(:disabled) {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+/* ============================================================
+   Активный стоп-лист
+   ============================================================ */
+
+.stop-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stop-list__item {
+  padding: 14px 16px;
+  background: var(--color-card-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.stop-list__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.stop-list__name {
   font-weight: 600;
   color: var(--color-text);
 }
 
-.section__empty {
-  padding: 16px 0;
-  color: var(--color-text-muted);
-  font-size: 14px;
+.stop-list__countdown {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-accent);
+  white-space: nowrap;
 }
+
+.stop-list__reason {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-bottom: 10px;
+}
+
+.stop-list__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stop-list__category {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+/* ============================================================
+   Мобильные: 375–480px
+   ============================================================ */
 
 @media (max-width: 480px) {
   .app {
-    padding: 16px 12px 48px;
+    padding: 24px 14px 64px;
+  }
+
+  .app__header {
+    margin-bottom: 24px;
   }
 
   .app__title {
     font-size: 22px;
   }
 
+  .app__subtitle {
+    font-size: 14px;
+  }
+
+  .app__grid {
+    gap: 18px;
+  }
+
   .section {
-    padding: 16px;
+    padding: 18px;
+  }
+
+  .section__title {
+    font-size: 16px;
+    margin-bottom: 16px;
   }
 }
